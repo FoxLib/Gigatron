@@ -1,0 +1,42 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Fri Dec 25 10:27:11 2020
+[*]
+[dumpfile] "/disk/fox/dev/fpgacpu/gigatron/tb.vcd"
+[dumpfile_mtime] "Fri Dec 25 10:25:25 2020"
+[dumpfile_size] 75743
+[savefile] "/disk/fox/dev/fpgacpu/gigatron/tb.gtkw"
+[timestart] 0
+[size] 1920 1029
+[pos] -1 -1
+*-5.000000 105 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[sst_width] 248
+[signals_width] 221
+[sst_expanded] 1
+[sst_vpaned_height] 300
+@28
+tb.clock
+tb.clock_25
+@22
+tb.GCPU.pc[15:0]
+tb.GCPU.ir[15:0]
+@800200
+-Data
+@22
+[color] 5
+tb.GCPU.addr_r[15:0]
+[color] 5
+tb.GCPU.addr_w[15:0]
+@23
+[color] 5
+tb.GCPU.data_i[7:0]
+@22
+[color] 5
+tb.GCPU.data_o[7:0]
+@1000200
+-Data
+@22
+tb.GCPU.ac[7:0]
+[pattern_trace] 1
+[pattern_trace] 0
