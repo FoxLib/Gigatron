@@ -64,7 +64,7 @@ module de0(
 
 // Z-state
 assign DRAM_DQ = 16'hzzzz;
-assign GPIO_0  = 36'hzzzzzzzz;
+assign GPIO_0  = {1'b0, 1'bz, outx[3], 33'hzzzzzzzz};
 assign GPIO_1  = 36'hzzzzzzzz;
 
 // LED OFF
@@ -74,6 +74,9 @@ assign HEX2 = 7'b1111111;
 assign HEX3 = 7'b1111111;
 assign HEX4 = 7'b1111111;
 assign HEX5 = 7'b1111111;
+
+// Вывод "blinker light"
+assign LEDR = outx[3:0];
 
 // ---------------------------------------------------------------------
 wire clock_625;
@@ -87,12 +90,12 @@ pll u0(
     .clkin (CLOCK_50),
 
     // Производные частоты
-    .m625  (clock_625),
-    .m25   (clock_25),
-    .m50   (clock_50),
-    .m75   (clock_75),
-    .m100  (clock_100),
-    .m106  (clock_106),
+    .m625   (clock_625),
+    .m25    (clock_25),
+    .m50    (clock_50),
+    .m75    (clock_75),
+    .m100   (clock_100),
+    .m106   (clock_106),
     .locked (locked)
 );
 
@@ -111,9 +114,9 @@ wire [15:0] w_addr;
 wire [ 7:0] i_data;
 wire [ 7:0] o_data;
 wire        o_we;
-wire [ 7:0] inreg = 8'hFF;
-wire [ 7:0] out;
-wire [ 7:0] outx;
+reg  [ 7:0] inreg = 8'hFF;
+wire [ 7:0] out;        // К VGA
+wire [ 7:0] outx;       // К audio и blink
 wire [ 7:0] ctrl;
 
 gigatron TTL
@@ -157,96 +160,59 @@ ram UnitRAM
     .wren_b     (o_we),
 );
 
-endmodule
+// ---------------------------------------------------------------------
+// Контроллер клавиатуры
+// ---------------------------------------------------------------------
 
-// *********************************************************************
-// Модуль PLL
-// *********************************************************************
+wire [7:0]  ps2data;
+wire        ps2hit;
 
-module  pll(
-
-    input wire clkin,
-    input wire rst,
-
-    output wire m625,
-    output wire m25,
-    output wire m50,
-    output wire m75,
-    output wire m100,
-    output wire m106,
-
-    output wire locked
+keyboard keyb
+(
+    .CLOCK_50           (clock_50), // Тактовый генератор на 50 Мгц
+    .PS2_CLK            (PS2_CLK),  // Таймингс PS/2
+    .PS2_DAT            (PS2_DAT),  // Данные с PS/2
+    .received_data      (ps2data),  // Принятые данные
+    .received_data_en   (ps2hit),   // Нажата клавиша
 );
 
-altera_pll #(
-    .fractional_vco_multiplier("false"),
-    .reference_clock_frequency("50.0 MHz"),
-    .operation_mode("normal"),
-    .number_of_clocks(6),
-    .output_clock_frequency0("25.0 MHz"),
-    .phase_shift0("0 ps"),
-    .duty_cycle0(50),
-    .output_clock_frequency1("100.0 MHz"),
-    .phase_shift1("0 ps"),
-    .duty_cycle1(50),
-    .output_clock_frequency2("50.0 MHz"),
-    .phase_shift2("0 ps"),
-    .duty_cycle2(50),
-    .output_clock_frequency3("106.0 MHz"),
-    .phase_shift3("0 ps"),
-    .duty_cycle3(50),
-    .output_clock_frequency4("75.0 MHz"),
-    .phase_shift4("0 ps"),
-    .duty_cycle4(50),
-    .output_clock_frequency5("6.25 MHz"),
-    .phase_shift5("0 ps"),
-    .duty_cycle5(50),
-    .output_clock_frequency6("0 MHz"),
-    .phase_shift6("0 ps"),
-    .duty_cycle6(50),
-    .output_clock_frequency7("0 MHz"),
-    .phase_shift7("0 ps"),
-    .duty_cycle7(50),
-    .output_clock_frequency8("0 MHz"),
-    .phase_shift8("0 ps"),
-    .duty_cycle8(50),
-    .output_clock_frequency9("0 MHz"),
-    .phase_shift9("0 ps"),
-    .duty_cycle9(50),
-    .output_clock_frequency10("0 MHz"),
-    .phase_shift10("0 ps"),
-    .duty_cycle10(50),
-    .output_clock_frequency11("0 MHz"),
-    .phase_shift11("0 ps"),
-    .duty_cycle11(50),
-    .output_clock_frequency12("0 MHz"),
-    .phase_shift12("0 ps"),
-    .duty_cycle12(50),
-    .output_clock_frequency13("0 MHz"),
-    .phase_shift13("0 ps"),
-    .duty_cycle13(50),
-    .output_clock_frequency14("0 MHz"),
-    .phase_shift14("0 ps"),
-    .duty_cycle14(50),
-    .output_clock_frequency15("0 MHz"),
-    .phase_shift15("0 ps"),
-    .duty_cycle15(50),
-    .output_clock_frequency16("0 MHz"),
-    .phase_shift16("0 ps"),
-    .duty_cycle16(50),
-    .output_clock_frequency17("0 MHz"),
-    .phase_shift17("0 ps"),
-    .duty_cycle17(50),
-    .pll_type("General"),
-    .pll_subtype("General")
-)
-altera_pll_i (
-    .rst    (rst),
-    .outclk ({m625, m75, m106, m50, m100, m25}),
-    .locked (locked),
-    .fboutclk ( ),
-    .fbclk  (1'b0),
-    .refclk (clkin)
-);
+reg released  = 1'b0;
+
+// Прием символа (пример)
+always @(posedge clock_50) begin
+
+    if (ps2hit) begin
+
+        // Клавиша отпущена
+        if (ps2data == 8'hF0) begin released <= 1'b1; end
+
+        // Другие клавиши
+        else begin
+
+            case (ps2data)
+
+                // Клавиши джойстика, на самом деле
+                8'h74: inreg <= inreg & ~8'h01; // RIGHT
+                8'h6B: inreg <= inreg & ~8'h02; // LEFT
+                8'h72: inreg <= inreg & ~8'h04; // DOWN
+                8'h75: inreg <= inreg & ~8'h08; // UP
+                8'h69: inreg <= inreg & ~8'h10; // START    | INS
+                8'h71: inreg <= inreg & ~8'h20; // SELECT   | DEL
+                8'h70: inreg <= inreg & ~8'h40; // B        | INS
+                8'h6C: inreg <= inreg & ~8'h80; // A        | HOME
+
+            endcase
+
+            // Эта клавиша была отпущена
+            if (released) inreg <= 8'hFF;
+
+            released <= 1'b0;
+
+        end
+
+    end
+
+end
+
 
 endmodule
