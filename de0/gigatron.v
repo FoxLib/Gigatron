@@ -147,7 +147,7 @@ always @(posedge clock) begin
 
                 4: x <= b;
                 5: y <= b;
-                7: if (bus == 1) x <= x + 1;
+                7: x <= x + 1;
 
             endcase
 

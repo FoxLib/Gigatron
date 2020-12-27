@@ -20,13 +20,14 @@ wire [15:0] addr_r;
 wire [15:0] addr_w;
 wire [ 7:0] data_o;
 wire [ 7:0] data_i = memory[addr_r];
+wire [15:0] rom_i = program_m[program_a];
 wire        we;
 wire [ 7:0] out;
 wire [ 7:0] outx;
 
 always @(posedge clock) if (we) memory[addr_w] <= data_o;
 
-initial $readmemh("program.hex", program_m, 16'h0000);
+initial $readmemh("asm/program.hex", program_m, 16'h0000);
 initial $readmemh("memory.hex",  memory, 16'h0000);
 // ---------------------------------------------------------------------
 
@@ -35,7 +36,7 @@ gigatron GCPU
     .clock  (clock_25),
     .rst_n  (1'b1),
     .pc     (program_a),
-    .rom_i  (program_m[program_a]),
+    .rom_i  (rom_i),
 
     // Интерфейс памяти
     .addr_r (addr_r),

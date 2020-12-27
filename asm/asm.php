@@ -13,7 +13,7 @@ $equ    = [];
 
 function address($a) {
 
-    global $labels, $equ;
+    global $labels, $equ, $org;
 
     $a = trim($a);
 
@@ -23,6 +23,10 @@ function address($a) {
     if (isset($labels[$a])) {
         return $labels[$a] & 255;
     }
+
+    if ($a == '$') return $org;
+    if (preg_match('~\$\+(\d+)~', $a, $m)) return $org + ($m[1]&255);
+    if (preg_match('~\$\-(\d+)~', $a, $m)) return $org - ($m[1]&255);
 
     if (preg_match('~\$([0-9a-f]+)~i', $a)) {
         return hexdec($a) & 255;
