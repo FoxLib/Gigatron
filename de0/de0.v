@@ -75,10 +75,21 @@ assign HEX3 = 7'b1111111;
 assign HEX4 = 7'b1111111;
 assign HEX5 = 7'b1111111;
 
+// Модуль SDRAM
+assign DRAM_CKE  = 0; // ChipEnable=1
+assign DRAM_CS_N = 1; // ChipSelect=0
+
 // Вывод "blinker light"
-assign LEDR = outx[3:0];
+assign LEDR = pwm_light < 1024 ? outx[3:0] : 0;
+assign {VGA_VS, VGA_HS, VGA_B[3:2], VGA_G[3:2], VGA_R[3:2]} = out;
+
+// Снизить яркость светодиодов
+reg [15:0] pwm_light; always @(posedge clock_625) pwm_light <= pwm_light + 1;
 
 // ---------------------------------------------------------------------
+// Тактовые генераторы
+// ---------------------------------------------------------------------
+
 wire clock_625;
 wire clock_25;
 wire clock_50;
@@ -100,24 +111,20 @@ pll u0(
 );
 
 // -----------------------------------------------------------------------
-// Модуль SDRAM и видеоадаптер
+// Процессор Gigatron
 // -----------------------------------------------------------------------
 
-assign DRAM_CKE  = 0; // ChipEnable=1
-assign DRAM_CS_N = 1; // ChipSelect=0
-assign {VGA_VS, VGA_HS, VGA_B[3:2], VGA_G[3:2], VGA_R[3:2]} = out;
-
-wire [15:0] pc;
-wire [15:0] ir;
-wire [15:0] r_addr;
-wire [15:0] w_addr;
-wire [ 7:0] i_data;
-wire [ 7:0] o_data;
-wire        o_we;
-reg  [ 7:0] inreg = 8'hFF;
-wire [ 7:0] out;        // К VGA
-wire [ 7:0] outx;       // К audio и blink
-wire [ 7:0] ctrl;
+wire [15:0] pc;             // Program Counter
+wire [15:0] ir;             // К IR
+wire [15:0] r_addr;         // Адрес памяти на чтение
+wire [15:0] w_addr;         // Адрес записи
+wire [ 7:0] i_data;         // Данные из памяти
+wire [ 7:0] o_data;         // Данные на запись
+wire        o_we;           // Сигнал записи
+reg  [ 7:0] inreg = 8'hFF;  // Клавиатура (и входные данные)
+wire [ 7:0] out;            // К VGA
+wire [ 7:0] outx;           // К audio и blink
+wire [ 7:0] ctrl;           // Управляющие сигналы
 
 gigatron TTL
 (
@@ -140,6 +147,10 @@ gigatron TTL
     .outx       (outx),
     .ctrl       (ctrl)
 );
+
+// ---------------------------------------------------------------------
+// Контроллер памяти
+// ---------------------------------------------------------------------
 
 // Коды программы
 rom UnitROM
@@ -166,6 +177,7 @@ ram UnitRAM
 
 wire [7:0]  ps2data;
 wire        ps2hit;
+reg         released  = 1'b0;
 
 keyboard keyb
 (
@@ -175,8 +187,6 @@ keyboard keyb
     .received_data      (ps2data),  // Принятые данные
     .received_data_en   (ps2hit),   // Нажата клавиша
 );
-
-reg released  = 1'b0;
 
 // Прием символа (пример)
 always @(posedge clock_50) begin
@@ -213,6 +223,5 @@ always @(posedge clock_50) begin
     end
 
 end
-
 
 endmodule
