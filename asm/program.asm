@@ -1,4 +1,5 @@
 
+        ld  ac, ac
         ld  y, $00
         ld  x, $ff
         st  $af, [y,x++]

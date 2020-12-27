@@ -39,7 +39,7 @@ module gigatron
 reg  [ 7:0] ac  = 0;
 reg  [ 7:0] x   = 0;
 reg  [ 7:0] y   = 0;
-reg  [15:0] ir  = 0;
+reg  [15:0] ir  = 16'h0200; /* NOP: LD AC, AC */
 
 initial begin
 

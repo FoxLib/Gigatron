@@ -102,7 +102,7 @@ pll u0(
 
 assign DRAM_CKE  = 0; // ChipEnable=1
 assign DRAM_CS_N = 1; // ChipSelect=0
-assign {VGA_VS, VGA_HS, VGA_R[3:2], VGA_G[3:2], VGA_B[3:2]} = out;
+assign {VGA_VS, VGA_HS, VGA_B[3:2], VGA_G[3:2], VGA_R[3:2]} = out;
 
 wire [15:0] pc;
 wire [15:0] ir;
