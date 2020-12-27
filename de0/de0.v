@@ -64,8 +64,8 @@ module de0(
 
 // Z-state
 assign DRAM_DQ = 16'hzzzz;
-assign GPIO_0  = {1'b0, 1'bz, outx[3], 33'hzzzzzzzz};
-assign GPIO_1  = 36'hzzzzzzzz;
+assign GPIO_0  = 36'hzzzzzzzz;
+assign GPIO_1  = {1'b0, 1'bz, outx[7], 33'hzzzzzzzz};
 
 // LED OFF
 assign HEX0 = 7'b1111111;
