@@ -1,8 +1,3 @@
-/**
- * @desc Процессор, основанный на анализе и повторе js-эмулятора Gigatron
- * @url  https://gigatron.io/
- */
-
 module gigatron
 (
     input   wire        clock,
@@ -156,7 +151,7 @@ always @(posedge clock) begin
 
         end
 
-        // brancOp
+        // branchOp
         7: begin if (cond) pc <= {base, b}; end
 
         // aluOp (0-5)
@@ -169,12 +164,10 @@ always @(posedge clock) begin
             begin
 
                 // Инкремент X при особых условиях
-                if (mode == 7 && bus == 1)
-                    x <= x + 1;
+                if (mode == 7 && bus == 1) x <= x + 1;
 
                 // Запись содержимого AC в OUTX @(posedge VGA_HS)
-                if (!out[6] && alu[6])
-                    outx <= ac;
+                if (!out[6] && alu[6]) outx <= ac;
 
                 // Запись в порт значения АЛУ
                 out <= alu;
